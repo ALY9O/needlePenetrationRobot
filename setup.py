@@ -20,8 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'crtk_test = needlePenetrationRobot.crtk_test:main',
+            'needle_penetration_robot = needlePenetrationRobot.needle_penetration_robot:main',
             'gui = needlePenetrationRobot.gui:main',
+            'crtk_test = needlePenetrationRobot.crtk_test:main',
         ],
     },
 )
