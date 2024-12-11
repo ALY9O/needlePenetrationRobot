@@ -94,12 +94,12 @@ class RobotGUI(QWidget):
         setpoint_layout.addWidget(self.setpoint_button, 3, 0, 1, 2)
         layout.addLayout(setpoint_layout)
 
+        self.console_output = QPlainTextEdit()  # Initialize console_output before adding it to the layout
+        self.console_output.setReadOnly(True)
+        self.console_output.setStyleSheet("font-size: 10px;")
         text_layout = QVBoxLayout()
         text_layout.addWidget(self.console_output)
-        self.console_output = QPlainTextEdit()
-        self.console_output.setReadOnly(True)
-        self.console_output.setStyleSheet("font-size: 10px;")  # Adjust the font size
-        layout.addLayout(text_layout)   
+        layout.addLayout(text_layout)
 
         sys.stdout = OutputStream(self.console_output)
 

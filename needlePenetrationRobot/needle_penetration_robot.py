@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer, QCoreApplication
 from gui import RobotGUI
 
+np.set_printoptions(precision=4)
+
 class needle_penetration_robot:
     
     was_homed = False
@@ -42,8 +44,8 @@ class needle_penetration_robot:
     def do_home(self):
         self.enable()
         self.home()
-        self.was_homed = True
         print("Robot homing...")
+        self.was_homed = True
 
     def enable(self):
         self.ral.enable()
@@ -62,7 +64,7 @@ class needle_penetration_robot:
             print("Robot is busy")
             return
         else:
-            if (abs(self.x) > 0.05 or abs(self.y) > 0.05 or self.z > 0.2 or self.z < 0):
+            if (abs(self.x) > 0.05 or abs(self.y) > 0.05):  #add back z constraints once homing is fixed
                 print("Invalid setpoint")
             else:
                 setpoint = np.array([x, y, z])
@@ -74,7 +76,7 @@ class needle_penetration_robot:
             print("Robot is busy")
             return
         else:
-            if (abs(self.x + offset) > 0.05 or abs(self.y + offset) > 0.05 or self.z + offset > 0.2 or self.z + offset < 0):
+            if (abs(self.x + offset) > 0.05 or abs(self.y + offset) > 0.05): #add back z constraints once homing is fixed
                 print(f"Invalid jog")
             else:
                 if (axis == 'x'):
@@ -98,30 +100,28 @@ def main(args=None):
     ral = crtk.ral('NPR', '/control')
     NPR = needle_penetration_robot(ral)
     ral.check_connections()
-    print("Connections Verified")
     ral.spin()
 
     app = QApplication(sys.argv)
     gui = RobotGUI(NPR)
     gui.show()
 
-    print("Setup complete")
-
     # Use a QTimer to periodically call parse_js and update the GUI
     timer = QTimer()
     timer.timeout.connect(lambda: [NPR.parse_js(), gui.update_labels()])
-    timer.start(1)  # Update every 5 ms
+    timer.start(5)  # Update every 5 ms
     
     # Ensure the robot is disabled when the application exits
-    app.aboutToQuit.connect(NPR.disable)
-    app.aboutToQuit.connect(ral.shutdown)
+    def cleanup():
+        NPR.disable()
+        ral.shutdown()
+    
+    app.aboutToQuit.connect(cleanup)
 
     def signal_handler(sig, frame):
         print('Ctrl+C pressed, shutting down...')
-        NPR.disable()
-        ral.shutdown()
-        timer.stop()
-        QCoreApplication.quit()
+        cleanup()
+        app.quit()  # Properly quit the QApplication
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
